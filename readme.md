@@ -15,6 +15,7 @@ by Ben Cook <b@bencook.ca>
 3. Setup Piazza login configuration:
 
     `$ echo "PIAZZA_LOGIN_USER=(user)`
+    
     `> PIAZZA_LOGIN_PASS=(pass) > piazza_stats/login_config.py"`
 
 4. Activate virtualenv:
