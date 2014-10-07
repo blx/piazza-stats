@@ -107,12 +107,10 @@
                 
             tip.direction(function(d) {
                 // try to keep tooltip inside boundaries
-                var dir = '';
                 
-                if (this.cy.baseVal.value - 300 < 0)
-                    dir = 's';
-                else
-                    dir = 'n';
+                var dir = this.cy.baseVal.value - 300 < 0
+                        ? 's'
+                        : 'n';
                 
                 if (this.cx.baseVal.value - 400 < 0)
                     dir += 'e';
@@ -233,49 +231,84 @@
             format = d3.time.format("%Y-%m-%d");
         
         
-        var svg = d3.select(parentdiv).selectAll("svg")
-            .data([2014])
-            .enter().append("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .attr("class", "RdYlGn")
-                .append("g")
-                .attr("transform", "translate("+((width-cellSize*53)/2)+","+(height-cellSize*7 - 1) + ")");
-        
-        svg.append("text")
-            .attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
-            .style("text-anchor", "middle")
-            .text(function(d) { return d; });
-
-        var rect = svg.selectAll(".day")
-            .data(function(d) { return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
-          .enter().append("rect")
-            .attr("class", "day")
-            .attr("width", cellSize)
-            .attr("height", cellSize)
-            .attr("x", function(d) { return week(d) * cellSize; })
-            .attr("y", function(d) { return day(d) * cellSize; })
-            .datum(format);
-        
-        rect.append("title")
-            .text(function(d) { return d; });
-
-
-        var g = svg.selectAll(".month")
-            .data(function(d) { return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1)); })
-            .enter().append("g");
-
-        g.append("text")
-            .attr("transform", function(d) { return "translate(" + d3.time.format("%m")(d) * cellSize * 4.3 + ",-5)"})
-            .attr("text-anchor", "end")
-            .text(function(d) { return d3.time.format("%b")(d); });
-            
-        g.append("path")
-            .attr("class", "month")
-            .attr("d", monthPath);
-        
         d3.json("/calendar/json", function(error, json) {
             json = json.data;
+            
+            /*
+            var years = _(json).chain()
+                .map(function(val, d) {
+                    return +d.substring(0,4); })   // get year part
+                .uniq().value().sort();
+            
+            
+            var year_months = _(years).reduce(function(memo, y) {
+                memo[y] = [];
+                return memo;
+            }, {});*/
+            
+            var year_months = _(json).chain()
+                .keys()
+                .reduce(function(memo, d) {
+                    var year  = +d.substring(0,4),
+                        month = +d.substring(5,7);
+                    if (!memo[year])
+                        memo[year] = [];
+                    if (!_(memo[year]).contains(month))
+                        memo[year].push(month);
+                    return memo;
+                }, {})
+                .value();
+            
+            var years = _(_(year_months).keys()).map(function(y){ return +y; });
+            
+            var months = function(year) {
+                return d3.extent(d3.values(year_months[year]));
+            }
+            
+            
+                
+            var svg = d3.select(parentdiv).selectAll("svg")
+                .data(years)
+                .enter().append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("class", "RdYlGn")
+                    .append("g")
+                    .attr("transform", "translate("+((width-cellSize*53)/2)+","+(height-cellSize*7 - 1) + ")");
+        
+            svg.append("text")
+                .attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
+                .style("text-anchor", "middle")
+                .text(function(d) { return d; });
+
+
+            var rect = svg.selectAll(".day")
+                .data(function(d) { return d3.time.days(new Date(d, months(d)[0]-1, 1), new Date(d, months(d)[1], 1)); })
+              .enter().append("rect")
+                .attr("class", "day")
+                .attr("width", cellSize)
+                .attr("height", cellSize)
+                .attr("x", function(d) { return week(d) * cellSize; })
+                .attr("y", function(d) { return day(d) * cellSize; })
+                .datum(format);
+        
+            rect.append("title")
+                .text(function(d) { return d; });
+
+
+            var g = svg.selectAll(".month")
+                .data(function(year) { return d3.time.months(new Date(year, months(year)[0]-1, 1), new Date(year, months(year)[1], 1)); })
+                .enter().append("g");
+
+            g.append("text")
+                .attr("transform", function(d) { return "translate(" + d3.time.format("%m")(d) * cellSize * 4.3 + ",-5)"})
+                .attr("text-anchor", "end")
+                .text(function(d) { return d3.time.format("%b")(d); });
+            
+            g.append("path")
+                .attr("class", "month")
+                .attr("d", monthPath);
+            
             
             var color = d3.scale.quantize()
                 .domain(d3.extent(d3.values(json)))
