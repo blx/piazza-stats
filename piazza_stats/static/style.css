@@ -1,0 +1,171 @@
+body {
+    background-color: #eee;
+    margin: 0;
+    padding: 0;
+    font: 12px Helvetica, sans-serif;
+}
+
+header, #mothership {
+    width: 1300px;
+}
+header {
+    margin: 2em auto 1.5em;
+    background-color: #eee;
+}
+header h1 {
+    margin: 0;
+    display: inline-block;
+}
+header h1 span {
+    color: #9e9e9e;
+    font-weight: normal;
+    padding-left: .5em;
+}
+header p {
+    display: inline-block;
+    float: right;
+    color: #888;
+}
+header a, header a:visited {
+    color: inherit;
+    text-decoration: none;
+    padding-bottom: 1px;
+    border-bottom: 2px solid #bbb;  
+}
+header a:hover {
+    background-color: #ddd;
+}
+
+#mothership {
+    margin: 0 auto 2em;
+    padding: 2px 9px 30px;
+    background-color: #fff;
+    border-radius: 6px;
+}
+
+.chart {
+    margin-bottom: 80px;
+}
+
+.chart h2, h3 {
+    margin-left: 1em;
+    display: inline-block;
+    margin-top: 1em;
+}
+.chart h3 {
+    float: right;
+    padding-top: .75em;
+}
+
+
+
+
+.bar, .dot {
+    fill: steelblue;
+}
+.instructor {
+    fill: #ffae38;
+}
+.private {
+    fill: #888;
+}
+.bar.faded {
+    fill: #e6e6e6;
+}
+.axis {
+    font: 10px sans-serif;
+}
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+
+
+/* http://bl.ocks.org/Caged/6476579 */
+.d3-tip {
+    pointer-events:none;
+    line-height: 1;
+    font-weight: bold;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    
+    max-width: 400px;
+    max-height: 300px;
+}
+
+.d3-tip h3 {
+    margin: 0;
+}
+.d3-tip a {
+    color: inherit;
+}
+
+.d3-tip p {
+    margin-top: 7px;
+    color: #aaa;
+    font-weight: normal;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+    pointer-events: none;
+    box-sizing: border-box;
+    display: inline;
+    font-size: 10px;
+    width: 100%;
+    line-height: 1;
+    color: rgba(0, 0, 0, 0.8);
+    content: "\25BC";
+    position: absolute;
+    text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+    left: 0;
+}
+
+
+
+/* http://bl.ocks.org/mbostock/4063318 */
+.day {
+  fill: #fff;
+  stroke: #ccc;
+}
+
+.month {
+  fill: none;
+  stroke: #000;
+  stroke-width: 2px;
+}
+
+/*
+.RdYlGn .q0-11{fill:rgb(165,0,38)}
+.RdYlGn .q1-11{fill:rgb(215,48,39)}
+.RdYlGn .q2-11{fill:rgb(244,109,67)}
+.RdYlGn .q3-11{fill:rgb(253,174,97)}
+.RdYlGn .q4-11{fill:rgb(254,224,139)}
+.RdYlGn .q5-11{fill:rgb(255,255,191)}
+.RdYlGn .q6-11{fill:rgb(217,239,139)}
+.RdYlGn .q7-11{fill:rgb(166,217,106)}
+.RdYlGn .q8-11{fill:rgb(102,189,99)}
+.RdYlGn .q9-11{fill:rgb(26,152,80)}
+.RdYlGn .q10-11{fill:rgb(0,104,55)}
+*/
+.RdYlGn .q0-11{fill:rgba(0,94,55,.1)}
+.RdYlGn .q1-11{fill:rgba(0,94,55,.2)}
+.RdYlGn .q2-11{fill:rgba(0,94,55,.3)}
+.RdYlGn .q3-11{fill:rgba(0,94,55,.37)}
+.RdYlGn .q4-11{fill:rgba(0,94,55,.44)}
+.RdYlGn .q5-11{fill:rgba(0,94,55,.53)}
+.RdYlGn .q6-11{fill:rgba(0,94,55,.61)}
+.RdYlGn .q7-11{fill:rgba(0,94,55,.7)}
+.RdYlGn .q8-11{fill:rgba(0,94,55,.8)}
+.RdYlGn .q9-11{fill:rgba(0,94,55,.9)}
+.RdYlGn .q10-11{fill:rgba(0,94,55,1)}
