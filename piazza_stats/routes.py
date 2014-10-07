@@ -3,6 +3,8 @@ from flask import render_template, jsonify, request, abort
 from piazza_stats import app
 from piazza_stats.stats import Stats
 
+# Cache the stats object between requests to preserve
+# the PiazzaAPI and Mongo connections.
 stats = Stats("hx2lqx3ohi06j")
 
 
@@ -13,10 +15,8 @@ def dashboard_view():
 
 @app.route('/get_users', methods=['POST'])
 def get_users_json():
-    print request.json
     if not request.json or not 'users' in request.json:
-#        abort(400)
-        pass
+        abort(400)
     return jsonify({"data":stats.get_users(request.json['users'])})
 
 @app.route('/user/<uid>/posts')

@@ -12,8 +12,6 @@ from piazza_api import PiazzaAPI
 
 from piazza_stats import app
 
-PIAZZA_CLASS = "hx2lqx3ohi06j"
-
 
 class Stats(object):
     def __init__(self, classid):
@@ -144,7 +142,8 @@ def time_analyze(json_posts):
 
 
 def main():
-    p = get_piazza()
+    s = Stats(app.config["PIAZZA_CLASS_ID"])
+    p = s.piazza
     
     data = []
     for row in csv.DictReader(p.get_statistics_csv().split("\n")):
