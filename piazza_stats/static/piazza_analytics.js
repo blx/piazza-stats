@@ -288,69 +288,6 @@
         });
     };
     
-    
-    /*
-    var draw_times = function(parentdiv, hours) {
-        var margin = {top: 20, right: 20, bottom: 20, left: 20},
-            width = 500 - margin.left - margin.right,
-            height = 300 - margin.top - margin.bottom;
-        
-        var x = d3.scale.ordinal()
-            .rangeRoundBands([0, width], .1);
-        
-        var y = d3.scale.linear()
-            .range([height, 0]);
-            
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom");
-            
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left")
-            .ticks(10);
-            
-        var svg = d3.select(parentdiv).append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-        
-        x.domain(hours.map(function(d) { return d.hour; }));
-        y.domain([0, d3.max(hours, function(d) { return d.frequency; })]);
-        
-        svg.append("g")
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(xAxis);
-            
-        svg.append("g")
-            .attr("class", "y axis")
-            .call(yAxis)
-            .append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 6)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-                .text("Frequency");
-        
-        svg.selectAll(".bar")
-            .data(hours)
-            .enter().append("rect")
-                .attr("class", "bar")
-                .attr("x", function(d) { return x(d.hour); })
-                .attr("width", x.rangeBand())
-                .attr("y", function(d) { return y(d.frequency); })
-                .attr("height", function(d) { return height - y(d.frequency); });
-        
-        $(parentdiv).append("<p>Post count: " + d3.sum(hours.map(function(d) { return d.frequency; })) + "</p>");
-    };
-    
-    $.get("/times/json", function(data) {
-        draw_times('#times_chart', data.data);
-    });
-    */
-    
     draw_bubbles('#bubbles_chart');
     draw_calendar('#calendar_chart');
 })(window.ps = window.ps || {});
