@@ -60,6 +60,8 @@
 
         d3.json('/posts-weights/json', function(error, data) {
             data = data.data;
+            var highest_post_number = -1;
+            
             data.forEach(function(d) {
                 var zeropad2digits = function(n) {
                     return n < 10 ? "0"+n : n;
@@ -68,6 +70,8 @@
                 d.created = date.toString();
                 // scale minutes up to 100 instead of 60 to fill range of axis
                 d.time = zeropad2digits(date.getHours()) + "" + (zeropad2digits(date.getMinutes() * 100/60));
+                
+                highest_post_number = Math.max(highest_post_number, d.nr);
             });
             
             var hours_avg = {};
@@ -87,7 +91,8 @@
             
             
             $("<h2/>").text("Activity by Time of Day").appendTo($(parentdiv));
-            $("<h3/>").text(data.length+" posts").appendTo($(parentdiv));
+            $("<h3/>").text(data.length+" posts")
+                .attr("title", "highest post #: " + highest_post_number).appendTo($(parentdiv));
 
             var svg = d3.select(parentdiv).append("svg")
                 .attr("width", width + margin.left + margin.right)

@@ -139,6 +139,7 @@ def time_analyze(json_posts):
     for h in sorted(hours.keys()):
         print 'posts at {}: {}'.format(h, hours[h])
 
+    
 
 
 def main():
