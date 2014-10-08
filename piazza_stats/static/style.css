@@ -55,6 +55,10 @@ header a:hover {
     padding: 0;
     display: inline-block;
 }
+#infobar a {
+    text-decoration: none;
+    color: inherit;
+}
 
 .chart {
     margin-bottom: 80px;

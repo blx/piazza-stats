@@ -95,13 +95,21 @@
             $("<h3/>").text(data.length+" posts")
                 .attr("title", "highest post #:" + highest_post_number).appendTo($("#infobar"));
             
-            d3.json('/instructor_stats', function(err, inst_data) {
-                inst_data = inst_data.data;
-                var db_behind_piazza_by = highest_post_number - inst_data.total_posts;
-            
-                $("<p/>").text(db_behind_piazza_by ? 'Behind Piazza by '+db_behind_piazza_by+' posts.' : 'Up to date with Piazza.')
-                    .hide().appendTo($("#infobar")).fadeIn(100);
+            d3.json('/auto-update', function(err, update_data) {
+                var delta = +update_data.data.update_count;
+                
+                $("<a/>")
+                    .text(delta
+                        ? 'Behind Piazza by ' + delta + ' post' + (delta > 1 ? 's' : '') + '.'
+                        : 'Up to date with Piazza.')
+                    .on("click", function() {
+                        $.get('/auto-update');
+                    })
+                    .attr("href", "")
+                    .attr("title", "Click to update.")
+                    .hide().appendTo($("<p/>").appendTo($("#infobar"))).fadeIn(100);
             });
+
 
             var svg = d3.select(parentdiv).append("svg")
                 .attr("width", width + margin.left + margin.right)

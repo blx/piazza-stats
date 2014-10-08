@@ -1,3 +1,5 @@
+import os
+
 from flask import render_template, jsonify, request, abort
 
 from piazza_stats import app
@@ -6,6 +8,7 @@ from piazza_stats.stats import Stats
 # Cache the stats object between requests to preserve
 # the PiazzaAPI and Mongo connections.
 stats = Stats("hx2lqx3ohi06j")
+stats.auto_update("")
 
 
 
@@ -38,3 +41,7 @@ def get_calendar_json():
 @app.route('/instructor_stats')
 def get_instructor_stats():
     return jsonify({"data":stats.piazza.get_instructor_stats()})
+
+@app.route('/auto-update')
+def run_auto_update():
+    return jsonify({"data":{"update_count": stats.auto_update(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'posts'))}})

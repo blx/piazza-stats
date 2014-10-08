@@ -82,7 +82,19 @@ class Stats(object):
         return group_datetimes_by_hours([i["result"]["created"] 
                                          for i in self.posts.find().sort("result.created")
                                          if i["result"].get("created")])
-
+    
+    
+    def auto_update(self, postsdir):
+        piazza_newest_post = int(self.piazza.get_instructor_stats()['total_posts'])
+        db_newest_post = int(self.posts.find().sort("result.change_log.0.when", -1).limit(1)[:][0]['result']['nr'])
+        
+        if piazza_newest_post <= db_newest_post:
+            return
+        
+        gatherer(self.piazza, db_newest_post + 1, piazza_newest_post, postsdir)
+        update_db(postsdir, db_newest_post + 1, piazza_newest_post)
+        
+        return piazza_newest_post - db_newest_post
 
 
 
@@ -112,7 +124,7 @@ def gatherer(piazza, start_post, end_post, outdir=None):
         post = piazza.get_post(cid=i)
         if post and not post.get('error'):
             if outdir:
-                with open(os.path.join(outdir, '%d.json' % i), 'a') as outf:
+                with open(os.path.join(outdir, '%d.json' % i), 'w') as outf:
                     json.dump(post, outf)
             else:
                 json_posts.append(post)
