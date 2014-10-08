@@ -109,7 +109,7 @@ def gatherer(piazza, start_post, end_post, outdir=None):
     
     for i in xrange(start_post, end_post+1):
         print "Fetching post #{}".format(i)
-        post = piazza.get(cid=i)
+        post = piazza.get_post(cid=i)
         if post and not post.get('error'):
             if outdir:
                 with open(os.path.join(outdir, '%d.json' % i), 'a') as outf:

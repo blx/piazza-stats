@@ -90,7 +90,7 @@ class PiazzaAPI(object):
             res = requests.get(uri)
         self.cookies = res.cookies
 
-    def get(self, cid, nid=None):
+    def get_post(self, cid, nid=None):
         """Get data from post `cid` in network `nid`
 
         :type  nid: str
