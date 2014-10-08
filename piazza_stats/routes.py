@@ -38,9 +38,9 @@ def get_posts_weights_json():
 def get_calendar_json():
     return jsonify({"data":stats.get_calendar()})
 
-@app.route('/instructor_stats')
-def get_instructor_stats():
-    return jsonify({"data":stats.piazza.get_instructor_stats()})
+#@app.route('/instructor_stats')
+#def get_instructor_stats():
+#    return jsonify({"data":stats.piazza.get_instructor_stats()})
 
 @app.route('/auto-update')
 def run_auto_update():
