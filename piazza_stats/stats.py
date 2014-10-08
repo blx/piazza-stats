@@ -17,7 +17,7 @@ class Stats(object):
     def __init__(self, classid):
         self.network_id = classid
         self.piazza = self.get_piazza()
-        self.posts = self.get_db()
+        self.posts = Stats.get_db()
     
     def get_piazza(self):
         p = PiazzaAPI(network_id=self.network_id)
@@ -25,7 +25,8 @@ class Stats(object):
                     password=app.config["PIAZZA_LOGIN_PASS"])
         return p
     
-    def get_db(self):
+    @staticmethod
+    def get_db():
         mongo = MongoClient()
         db = mongo.piazza_db
         return db.posts
@@ -87,18 +88,19 @@ class Stats(object):
 
 
 def update_db(postsdir, start_post=None, end_post=None):
-    posts = get_db()
+    posts = Stats.get_db()
     
     for file in glob.iglob(os.path.join(postsdir, '*.json')):
-        num = os.path.split(file)[1].split('.')[0]
+        num = int(os.path.split(file)[1].split('.')[0])
 
         if start_post and start_post > num:
-            pass
+            continue
         elif end_post and end_post < num:
             break
     
         with open(file, 'r') as infile:
             posts.insert(json.load(infile))
+            print 'Added post %s' % file
 
 
 
