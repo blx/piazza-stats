@@ -124,6 +124,7 @@ class PiazzaAPI(object):
         if self.cookies is None:
             raise NotAuthenticatedError("You must authenticate before making any other requests.")
     
+    
     # added by Ben
     def get_statistics_csv(self):
         """Get CSV of class participation statistics
@@ -184,7 +185,27 @@ class PiazzaAPI(object):
             }),
             cookies=self.cookies
         ).json().get('result')
-
+    
+    
+    def get_instructor_stats(self):
+        self._check_authenticated()
+        
+        res = requests.post(
+            "https://piazza.com/logic/api",
+            params={
+                "method": "network.get_instructor_stats",
+                "aid": self.generate_aid()
+            },
+            data=json.dumps({
+                "method": "network.get_instructor_stats",
+                "params": {
+                    "nid": self._nid
+                }
+            }),
+            cookies=self.cookies
+        ).json()
+        
+        return res['result'] if not res.get('error') else res
 
 
 

@@ -43,6 +43,20 @@ header a:hover {
     border-radius: 6px;
 }
 
+#infobar {
+    width: 100%;
+    background-color: rgba(0,0,0,0.6);
+    color: #eee;
+    margin: 1em .3em;
+    border-radius: 5px;
+    padding: .2em .9em .2em 0em;
+}
+#infobar h3, #infobar p {
+    margin: .6em .3em .6em 1em;
+    padding: 0;
+    display: inline-block;
+}
+
 .chart {
     margin-bottom: 80px;
 }
