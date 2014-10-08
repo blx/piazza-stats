@@ -3,10 +3,14 @@ import time
 import os
 import json
 import glob
-import datetime
+from datetime import datetime
 import time
 import operator
 from itertools import groupby
+
+from pytz import timezone
+tz_utc = timezone('UTC')
+tz_vancouver = timezone('America/Vancouver')
 
 from pymongo import MongoClient
 from piazza_api import PiazzaAPI
@@ -125,8 +129,7 @@ class Stats(object):
 #        } for p in posts]
         
         for p in posts:
-            # TODO timezone fiddling
-            p["created_hour"] = (datetime.datetime.fromtimestamp(p["created"]).time().hour - 7) % 24
+            p["created_hour"] = datetime.fromtimestamp(p["created"], tz=tz_vancouver).time().hour
             p["timedelta_inst"] = -1 if not p["first_inst_resp"] else p["first_inst_resp"][0] - p["created"]
             p["timedelta_stu"] = -1 if not p["first_stu_resp"] else p["first_stu_resp"][0] - p["created"]
             del p["first_inst_resp"]
@@ -178,7 +181,7 @@ def gatherer(piazza, start_post, end_post, outdir=None):
 
 
 def parse_datetime(s):
-    return datetime.datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ")
+    return datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=tz_utc).astimezone(tz_vancouver)
 
 def parse_epoch(s):
     return time.mktime(parse_datetime(s).timetuple())
@@ -188,9 +191,7 @@ def group_datetimes_by_hours(datetimes):
     hours = {h: 0 for h in xrange(24)}
     for dt in datetimes:
         d = parse_datetime(dt)
-        # TODO standardise timezone fiddling
-        h = (d.hour - 7) % 24
-        hours[h] += 1
+        hours[d.hour] += 1
     
     return hours
 

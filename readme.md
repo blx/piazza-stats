@@ -28,7 +28,7 @@ by Ben Cook <b@bencook.ca>
 
 6. Back in the virtualenv, install packages:
 
-    `(piazza_env)$ pip install requests pymongo flask`
+    `(piazza_env)$ pip install requests pymongo flask pytz`
 
 7. Start the app:
     
