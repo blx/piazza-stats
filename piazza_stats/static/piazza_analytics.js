@@ -121,30 +121,49 @@
               .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             
-            $("<a/>").text("Hide posts")
-                .on("click", function() {
-                    $("svg .dot").toggle();
-                    if ($(this).text().indexOf("Hide") == 0)
-                        $(this).text("Show posts");
-                    else
-                        $(this).text("Hide posts");
-                    //d3.selectAll(".dot")
-                      //  .classed("hidden", true);
-                })
-                .appendTo($("<li/>").appendTo($("#control-buttons")));
+            
+            var toggleLayer = function(evt) {
+                var name = $(evt.target).data("chartlayer").name;
+                $($(evt.target).data("chartlayer").selector).toggle();
+                if ($(this).text().indexOf("Hide") == 0)
+                    $(this).text("Show "+name);
+                else
+                    $(this).text("Hide "+name);
+            };
+            
+            _([{name: "posts", selector: "svg .dot"},
+               {name: "histogram", selector: "svg .bar.faded"},
+               {name: "response times", selector: "svg .bar.responses"}
+            ]).map(function(d) {
+                $("<a/>").text("Hide "+d.name)
+                    .data("chartlayer", d)
+                    .click(toggleLayer)
+                    .appendTo($("<li/>").appendTo($("#control-buttons")));
+            });
             
             
             var tip = d3.tip()
                 .attr("class", "d3-tip")
                 .html(function(d) {
-                    var s = "<h3>" + d.subject + "</h3>"
-                    s += "<p>Post #" + d.nr + " – " + d.created + "</p>";
-                    s += d.content_preview;
-                    return s;
+                    if (d.nr) {
+                        var s = "<h3>" + d.subject + "</h3>"
+                        s += "<p>Post #" + d.nr + " – " + d.created + "</p>";
+                        s += d.content_preview;
+                        return s;
+                    } else if (d.frequency) {
+                        return "<h4>" + d.frequency + " posts at " + (d.hour < 10 ? '0' : '') + d.hour + "00h</h4>";
+                    } else if (d.avg_delta_inst) {
+                        return "<h4>" + (d.avg_delta_inst / 60 / 60).toFixed(1) + "h avg instructor response</h4>";
+                    } else if (d.avg_delta_stu) {
+                        return "<h4>" + (d.avg_delta_stu / 60 / 60).toFixed(1) + "h avg student response</h4>";
+                    } else
+                        return "";
                 });
                 
             tip.direction(function(d) {
                 // try to keep tooltip inside boundaries
+                
+                if (!this.cy) return 'n';
                 
                 var dir = this.cy.baseVal.value - 300 < 0
                         ? 's'
@@ -173,7 +192,9 @@
                 .attr("x", function(d) { return xHours(d.hour); })
                 .attr("width", xHours.rangeBand())
                 .attr("y", function(d) { return yFrequency(d.frequency); })
-                .attr("height", function(d) { return height - yFrequency(d.frequency); });
+                .attr("height", function(d) { return height - yFrequency(d.frequency); })
+                .on("mouseover", tip.show)
+                .on("mouseout", tip.hide);
 
             svg.append("g")
                 .attr("class", "x axis")
@@ -207,6 +228,16 @@
                 .attr("y", 6)
                 .attr("dy", ".71em")
                 .text("Number of Posts (bars)");
+            
+            svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate("+(width-20)+",0)")
+                .append("text")
+                    .attr("class", "label")
+                    .attr("transform", "rotate(90)")
+                    .attr("y", 6)
+                    .attr("dy", ".71em")
+                    .text("How long until first answer?");
 
             svg.selectAll(".dot")
                 .data(data)
@@ -250,11 +281,11 @@
                         memo[d.created_hour] = {freq: 0, responsedeltas_inst: [], responsedeltas_stu: []};
                     
                     if (d.timedelta_inst != -1) {
-                        memo[d.created_hour].freq++;
+                        memo[d.created_hour].freq_inst++;
                         memo[d.created_hour].responsedeltas_inst.push(d.timedelta_inst);
                     }
                     if (d.timedelta_stu != -1) {
-                        memo[d.created_hour].freq++;
+                        memo[d.created_hour].freq_stu++;
                         memo[d.created_hour].responsedeltas_stu.push(d.timedelta_stu);
                     }
                     return memo;
@@ -263,33 +294,42 @@
                 yFirstResponseDelta.domain([0, d3.max(d3.values(resp_data), function(d) { return Math.max(d3.max(d.responsedeltas_inst),
                                                                                                           d3.max(d.responsedeltas_inst)); })]);
 
-                resp_data = _(d3.keys(resp_data)).map(function (hour) {
+                resp_data_inst = _(d3.keys(resp_data)).map(function (hour) {
                     return {
                         hour: hour,
                         freq: resp_data[hour].freq,
-                        avg_delta_inst: d3.mean(resp_data[hour].responsedeltas_inst) || 0,
+                        avg_delta_inst: d3.mean(resp_data[hour].responsedeltas_inst) || 0
+                    }
+                });
+                resp_data_stu = _(d3.keys(resp_data)).map(function (hour) {
+                    return {
+                        hour: hour,
+                        freq: resp_data[hour].freq,
                         avg_delta_stu: d3.mean(resp_data[hour].responsedeltas_stu) || 0
                     }
                 });
-                console.log(resp_data);
 
                 svg.selectAll(".bar.responses.instructor")
-                    .data(resp_data)
+                    .data(resp_data_inst)
                     .enter().append("rect")
                     .attr("class", "bar responses instructor")
                     .attr("x", function(d) { return xHours(d.hour) + xHours.rangeBand() * 3/16; })
                     .attr("width", xHours.rangeBand() * 4/16)
                     .attr("y", function(d) { return yFirstResponseDelta(d.avg_delta_inst); })
-                    .attr("height", function(d) { return height - yFirstResponseDelta(d.avg_delta_inst); });
+                    .attr("height", function(d) { return height - yFirstResponseDelta(d.avg_delta_inst); })
+                    .on("mouseover", tip.show)
+                    .on("mouseout", tip.hide);
                 
                 svg.selectAll(".bar.responses.stu")
-                    .data(resp_data)
+                    .data(resp_data_stu)
                     .enter().append("rect")
                     .attr("class", "bar responses stu")
                     .attr("x", function(d) { return xHours(d.hour) + xHours.rangeBand() * 9/16; })
                     .attr("width", xHours.rangeBand() * 4/16)
                     .attr("y", function(d) { return yFirstResponseDelta(d.avg_delta_stu); })
-                    .attr("height", function(d) { return height - yFirstResponseDelta(d.avg_delta_stu); });
+                    .attr("height", function(d) { return height - yFirstResponseDelta(d.avg_delta_stu); })
+                    .on("mouseover", tip.show)
+                    .on("mouseout", tip.hide);
             });
         });
     };
