@@ -124,8 +124,6 @@ class PiazzaAPI(object):
         if self.cookies is None:
             raise NotAuthenticatedError("You must authenticate before making any other requests.")
     
-    
-    # added by Ben
     def get_statistics_csv(self):
         """Get CSV of class participation statistics
         
@@ -165,47 +163,31 @@ class PiazzaAPI(object):
         return str_base(time.time(),36) + str_base(round(random.randrange(0,1679616)),36)
     
     
-    def get_users(self, user_ids):
+    def get(self, method, params={}):
         self._check_authenticated()
         
-        user_uri = "https://piazza.com/logic/api?method=network.get_users"
-        
         return requests.post(
-            user_uri,
+            self.base_api_uri,
             params={
-                "method": "network.get_users",
+                "method": method,
                 "aid": self.generate_aid()
             },
             data=json.dumps({
-                "method": "network.get_users",
-                "params": {
-                    "ids": user_ids,
-                    "nid": self._nid
-                }
+                "method": method,
+                "params": dict(nid=self._nid, **params)
             }),
             cookies=self.cookies
         ).json().get('result')
     
     
+    def get_users(self, user_ids):
+        return self.get("network.get_users", {
+            "ids": user_ids
+        })
+        
+    
     def get_instructor_stats(self):
-        self._check_authenticated()
-        
-        res = requests.post(
-            "https://piazza.com/logic/api",
-            params={
-                "method": "network.get_instructor_stats",
-                "aid": self.generate_aid()
-            },
-            data=json.dumps({
-                "method": "network.get_instructor_stats",
-                "params": {
-                    "nid": self._nid
-                }
-            }),
-            cookies=self.cookies
-        ).json()
-        
-        return res['result'] if not res.get('error') else res
+        return self.get("network.get_instructor_stats")
 
 
 
