@@ -4,7 +4,8 @@ import os
 import json
 import glob
 import datetime
-from operator import itemgetter
+import time
+import operator
 from itertools import groupby
 
 from pymongo import MongoClient
@@ -14,10 +15,11 @@ from piazza_stats import app
 
 
 class Stats(object):
-    def __init__(self, classid):
+    def __init__(self, classid, postsdir):
         self.network_id = classid
         self.piazza = self.get_piazza()
         self.posts = Stats.get_db()
+        self.postsdir = postsdir
     
     def get_piazza(self):
         p = PiazzaAPI(network_id=self.network_id)
@@ -75,26 +77,62 @@ class Stats(object):
     #    return [{"date":k, "posts":days[k]} for k in sorted(days.keys())]
 
 
-    def analyze_dir(self, postsdir, load_db=False):
+    def analyze_dir(self, load_db=False):
         if load_db:
-            update_db(postsdir)
+            update_db(self.postsdir)
     
         return group_datetimes_by_hours([i["result"]["created"] 
                                          for i in self.posts.find().sort("result.created")
                                          if i["result"].get("created")])
     
     
-    def auto_update(self, postsdir):
+    def auto_update(self):
         piazza_newest_post = int(self.piazza.get_instructor_stats()['total_posts'])
         db_newest_post = int(self.posts.find().sort("result.change_log.0.when", -1).limit(1)[:][0]['result']['nr'])
         
         if piazza_newest_post <= db_newest_post:
             return
         
-        gatherer(self.piazza, db_newest_post + 1, piazza_newest_post, postsdir)
-        update_db(postsdir, db_newest_post + 1, piazza_newest_post)
+        gatherer(self.piazza, db_newest_post + 1, piazza_newest_post, self.postsdir)
+        update_db(self.postsdir, db_newest_post + 1, piazza_newest_post)
         
         return piazza_newest_post - db_newest_post
+    
+    
+    def get_time_until_first_responses(self):
+        posts = self.posts.find({"result.status": {"$ne": "deleted"}},
+                                {"result.change_log":1, "result.nr":1, "_id":0}).sort("result.nr",1)
+        
+        posts = [{
+            "nr": p["result"]["nr"],
+            "created": parse_epoch(p["result"]["change_log"][0]["when"]),
+            "first_inst_resp": [parse_epoch(c["when"])
+                                for c in p["result"]["change_log"]
+                                if c["type"] == "i_answer"][:1],
+            "first_stu_resp": [parse_epoch(c["when"])
+                               for c in p["result"]["change_log"]
+                               if c["type"] == "s_answer"][:1]
+        } for p in posts]
+       
+#            "timedelta_inst": reduce(operator.__sub__,
+#                                    [datetime2epoch(parse_datetime(c["when"]))
+#                                     for c in p["result"]["change_log"]
+#                                     if c["type"] in ["create","i_answer"]][:2][::-1]),
+#            "timedelta_stu": reduce(operator.__sub__,
+#                                    [datetime2epoch(parse_datetime(c["when"]))
+#                                     for c in p["result"]["change_log"]
+#                                     if c["type"] in ["create", "s_answer"]][:2][::-1])
+#        } for p in posts]
+        
+        for p in posts:
+            # TODO timezone fiddling
+            p["created_hour"] = (datetime.datetime.fromtimestamp(p["created"]).time().hour - 7) % 24
+            p["timedelta_inst"] = -1 if not p["first_inst_resp"] else p["first_inst_resp"][0] - p["created"]
+            p["timedelta_stu"] = -1 if not p["first_stu_resp"] else p["first_stu_resp"][0] - p["created"]
+            del p["first_inst_resp"]
+            del p["first_stu_resp"]
+        
+        return posts
 
 
 
@@ -139,10 +177,17 @@ def gatherer(piazza, start_post, end_post, outdir=None):
 
 
 
+def parse_datetime(s):
+    return datetime.datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ")
+
+def parse_epoch(s):
+    return time.mktime(parse_datetime(s).timetuple())
+
+
 def group_datetimes_by_hours(datetimes):
     hours = {h: 0 for h in xrange(24)}
     for dt in datetimes:
-        d = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%SZ")
+        d = parse_datetime(dt)
         # TODO standardise timezone fiddling
         h = (d.hour - 7) % 24
         hours[h] += 1
@@ -171,7 +216,7 @@ def main():
         data.append(row)
     
     print "CONTRIBUTIONS -- NAME <EMAIL>"
-    for row in sorted(data, key=itemgetter('contributions'), reverse=True):
+    for row in sorted(data, key=operator.itemgetter('contributions'), reverse=True):
         if row["contributions"] == 0:
             break
         print "{r[contributions]:3d} -- {r[name]} <{r[email]}>{inst}".format(

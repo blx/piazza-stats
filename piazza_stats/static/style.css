@@ -60,6 +60,25 @@ header a:hover {
     color: inherit;
 }
 
+#control-buttons {
+    list-style-type: none;
+    float: right;
+    margin-top: 0.2em;
+}
+#control-buttons li {
+    background-color: blue;
+    border-radius: 4px;
+    padding: .5em .8em;
+    margin: 0;
+}
+#control-buttons li:hover {
+    cursor: pointer;
+    background-color: cyan;
+    color: black;
+}
+
+
+
 .chart {
     margin-bottom: 80px;
 }
@@ -76,6 +95,9 @@ header a:hover {
 
 
 
+.hidden {
+    display: none;
+}
 
 .bar, .dot {
     fill: steelblue;
@@ -119,6 +141,10 @@ header a:hover {
 }
 .d3-tip a {
     color: inherit;
+}
+
+.d3-tip img {
+    width: 100%;    /* stay inside the box */
 }
 
 .d3-tip p {

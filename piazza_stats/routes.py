@@ -7,9 +7,12 @@ from piazza_stats.stats import Stats
 
 # Cache the stats object between requests to preserve
 # the PiazzaAPI and Mongo connections.
-stats = Stats("hx2lqx3ohi06j")
-stats.auto_update("")
+stats = Stats("hx2lqx3ohi06j",
+              os.path.join(os.path.dirname(os.path.realpath(__file__)), "posts"))
 
+
+def js(obj):
+    return jsonify({"data":obj})
 
 
 @app.route('/')
@@ -20,28 +23,32 @@ def dashboard_view():
 def get_users_json():
     if not request.json or not 'users' in request.json:
         abort(400)
-    return jsonify({"data":stats.get_users(request.json['users'])})
+    return js(stats.get_users(request.json['users']))
 
 @app.route('/user/<uid>/posts')
 def get_user_posts(uid):
-    return jsonify({"data":stats.get_posts_by_user(uid)})
+    return js(stats.get_posts_by_user(uid))
 
 @app.route('/times/json')
 def get_times_json():
-    return jsonify({"data":[{"hour":k, "frequency":v} for k, v in stats.analyze_dir('posts').items()]})
+    return js([{"hour":k, "frequency":v} for k, v in stats.analyze_dir().items()])
     
 @app.route('/posts-weights/json')
 def get_posts_weights_json():
-    return jsonify({"data":stats.analyze_time_weights()})
+    return js(stats.analyze_time_weights())
 
 @app.route('/calendar/json')
 def get_calendar_json():
-    return jsonify({"data":stats.get_calendar()})
+    return js(stats.get_calendar())
 
 #@app.route('/instructor_stats')
 #def get_instructor_stats():
-#    return jsonify({"data":stats.piazza.get_instructor_stats()})
+#    return js(stats.piazza.get_instructor_stats())
 
 @app.route('/auto-update')
 def run_auto_update():
-    return jsonify({"data":{"update_count": stats.auto_update(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'posts'))}})
+    return js({"update_count": stats.auto_update()})
+
+@app.route('/time-until-responses')
+def get_time_until_first_resp():
+    return js(stats.get_time_until_first_responses())

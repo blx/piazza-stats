@@ -40,6 +40,9 @@
         
         var yFrequency = d3.scale.linear()
             .range([height, 0]);
+        
+        var yFirstResponseDelta = d3.scale.linear()
+            .range([height, 0]);
 
         var xAxis = d3.svg.axis()
             .scale(x)
@@ -117,6 +120,18 @@
               .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             
+            $("<a/>").text("Hide posts")
+                .on("click", function() {
+                    $("svg .dot").toggle();
+                    if ($(this).text().indexOf("Hide") == 0)
+                        $(this).text("Show posts");
+                    else
+                        $(this).text("Hide posts");
+                    //d3.selectAll(".dot")
+                      //  .classed("hidden", true);
+                })
+                .appendTo($("<li/>").appendTo($("#control-buttons")));
+            
             
             var tip = d3.tip()
                 .attr("class", "d3-tip")
@@ -151,7 +166,7 @@
             xHours.domain(hours_avg.map(function(d) { return d.hour; }));
             yFrequency.domain([0, d3.max(hours_avg, function(d) { return d.frequency; })]);
 
-            svg.selectAll(".bar")
+            svg.selectAll(".bar.faded")
                 .data(hours_avg)
                 .enter().append("rect")
                 .attr("class", "bar faded")
@@ -227,8 +242,94 @@
                 .style("text-anchor", "end")
                 .text(function(d) { return d; });
                 */
+                
+            d3.json("/time-until-responses", function(error, resp_data) {
+                resp_data = resp_data.data;
+                resp_data = _(resp_data).reduce(function(memo, d) {
+                    if (!memo[d.created_hour])
+                        memo[d.created_hour] = {freq: 0, responsedeltas_inst: [], responsedeltas_stu: []};
+                    
+                    if (d.timedelta_inst != -1) {
+                        memo[d.created_hour].freq++;
+                        memo[d.created_hour].responsedeltas_inst.push(d.timedelta_inst);
+                    }
+                    if (d.timedelta_stu != -1) {
+                        memo[d.created_hour].freq++;
+                        memo[d.created_hour].responsedeltas_stu.push(d.timedelta_stu);
+                    }
+                    return memo;
+                }, {});
+                
+                yFirstResponseDelta.domain([0, d3.max(d3.values(resp_data), function(d) { return Math.max(d3.max(d.responsedeltas_inst),
+                                                                                                          d3.max(d.responsedeltas_inst)); })]);
+
+                resp_data = _(d3.keys(resp_data)).map(function (hour) {
+                    return {
+                        hour: hour,
+                        avg_delta_inst: d3.mean(resp_data[hour].responsedeltas_inst) || 0,
+                        avg_delta_stu: d3.mean(resp_data[hour].responsedeltas_stu) || 0
+                    }
+                });
+
+                svg.selectAll(".bar.responses.instructor")
+                    .data(resp_data)
+                    .enter().append("rect")
+                    .attr("class", "bar responses instructor")
+                    .attr("x", function(d) { return xHours(d.hour) + xHours.rangeBand() * 3/16; })
+                    .attr("width", xHours.rangeBand() * 4/16)
+                    .attr("y", function(d) { return yFirstResponseDelta(d.avg_delta_inst); })
+                    .attr("height", function(d) { return height - yFirstResponseDelta(d.avg_delta_inst); });
+                
+                svg.selectAll(".bar.responses.stu")
+                    .data(resp_data)
+                    .enter().append("rect")
+                    .attr("class", "bar responses stu")
+                    .attr("x", function(d) { return xHours(d.hour) + xHours.rangeBand() * 9/16; })
+                    .attr("width", xHours.rangeBand() * 4/16)
+                    .attr("y", function(d) { return yFirstResponseDelta(d.avg_delta_stu); })
+                    .attr("height", function(d) { return height - yFirstResponseDelta(d.avg_delta_stu); });
+            });
         });
     };
+    
+    
+    
+    var draw_first_responses = function(parentdiv) {
+        var margin = {top: 20, right: 20, bottom: 40, left: 40},
+            width = $("#mothership").width() - margin.left - margin.right,
+            height = 700 - margin.top - margin.bottom;
+
+        var x = d3.scale.linear()
+            .range([0, width]);
+
+        var y = d3.scale.linear()
+            .range([height, 0]);
+        
+        var r = d3.scale.linear()
+            .range([3.5, 10]);
+            
+        var xHours = d3.scale.ordinal()
+            .rangeRoundBands([0, width], .1);
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .tickFormat(function (d) {
+                var h = d.toString();
+                while (h.length < 4) h = "0" + h;
+                return h.substr(0, 2) + ":" + h.substr(2,3);
+             });
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+        
+        d3.json("/time-until-responses", function(error, json) {
+            
+        });
+    };
+    
+    
     
     
     var draw_calendar = function(parentdiv) {
