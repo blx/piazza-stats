@@ -118,6 +118,7 @@ def update_db(postsdir, start_post=None, end_post=None):
 
 def gatherer(piazza, start_post, end_post, outdir=None):
     json_posts = []
+    delta = end_post - start_post
     
     for i in xrange(start_post, end_post+1):
         print "Fetching post #{}".format(i)
@@ -128,6 +129,9 @@ def gatherer(piazza, start_post, end_post, outdir=None):
                     json.dump(post, outf)
             else:
                 json_posts.append(post)
+        
+        if delta > 25 and i % delta == 24:
+            time.sleep(3)
         
         time.sleep(1)
     
