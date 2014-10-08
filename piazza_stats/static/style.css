@@ -44,7 +44,6 @@ header a:hover {
 }
 
 #infobar {
-    width: 100%;
     background-color: rgba(0,0,0,0.6);
     color: #eee;
     margin: 1em .3em;
