@@ -66,14 +66,17 @@ header a:hover {
     margin-top: 0.2em;
 }
 #control-buttons li {
-    background-color: blue;
+    padding: 0;
+    margin: .5em 0 0 .8em;
+    display: inline-block;
+}
+#control-buttons a {
+    background-color: red;
     border-radius: 4px;
     padding: .5em .8em;
-    margin: 0;
 }
-#control-buttons li:hover {
-    cursor: pointer;
-    background-color: cyan;
+#control-buttons a:hover {
+    cursor:pointer;
     color: black;
 }
 
