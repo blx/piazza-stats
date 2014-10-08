@@ -93,7 +93,7 @@
             $("<h2/>").text("Activity by Time of Day").appendTo($(parentdiv));
             
             $("<h3/>").text(data.length+" posts")
-                .attr("title", "highest post #: " + highest_post_number).appendTo($("#infobar"));
+                .attr("title", "highest post #:" + highest_post_number).appendTo($("#infobar"));
             
             d3.json('/instructor_stats', function(err, inst_data) {
                 inst_data = inst_data.data;
@@ -297,7 +297,7 @@
 
 
             var rect = svg.selectAll(".day")
-                .data(function(d) { return d3.time.days(new Date(d, months(d)[0]-1, 1), new Date(d, months(d)[1], 1)); })
+                .data(function(year) { return d3.time.days(new Date(year, months(year)[0]-1, 1), new Date(year, months(year)[1], 1)); })
               .enter().append("rect")
                 .attr("class", "day")
                 .attr("width", cellSize)
