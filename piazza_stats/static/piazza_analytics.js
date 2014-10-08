@@ -22,12 +22,13 @@
     
     
     var draw_bubbles = function(parentdiv) {
-        var margin = {top: 20, right: 20, bottom: 40, left: 40},
+        var margin = {top: 20, right: 30, bottom: 40, left: 40},
             width = $("#mothership").width() - margin.left - margin.right,
             height = 700 - margin.top - margin.bottom;
 
         var x = d3.scale.linear()
-            .range([0, width]);
+            .range([0, width])
+            .domain([0, 2399]); // 24-hour time scaled to base-100 instead of base-60
 
         var y = d3.scale.linear()
             .range([height, 0]);
@@ -36,7 +37,7 @@
             .range([3.5, 10]);
             
         var xHours = d3.scale.ordinal()
-            .rangeRoundBands([0, width], .1);
+            .rangeRoundBands([0, width], 0/*.1*/);
         
         var yFrequency = d3.scale.linear()
             .range([height, 0]);
@@ -160,7 +161,6 @@
         
             svg.call(tip);
             
-            x.domain([0, 2399]); // 24-hour time scaled to base-100 instead of base-60
             y.domain(d3.extent(data, function(d) { return d.unique_views; }));
             r.domain(d3.extent(data, function(d) { return d.tag_good_arr; }));
             xHours.domain(hours_avg.map(function(d) { return d.hour; }));
@@ -266,10 +266,12 @@
                 resp_data = _(d3.keys(resp_data)).map(function (hour) {
                     return {
                         hour: hour,
+                        freq: resp_data[hour].freq,
                         avg_delta_inst: d3.mean(resp_data[hour].responsedeltas_inst) || 0,
                         avg_delta_stu: d3.mean(resp_data[hour].responsedeltas_stu) || 0
                     }
                 });
+                console.log(resp_data);
 
                 svg.selectAll(".bar.responses.instructor")
                     .data(resp_data)
