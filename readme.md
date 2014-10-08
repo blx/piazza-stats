@@ -14,7 +14,7 @@ by Ben Cook <b@bencook.ca>
 
 3. Setup Piazza login configuration:
 
-    `$ echo "PIAZZA_LOGIN_USER=(user)`
+    `$ echo "PIAZZA_LOGIN_EMAIL=(email)`
     
     `> PIAZZA_LOGIN_PASS=(pass)" > piazza_stats/login_config.py`
 
