@@ -141,7 +141,7 @@
             y.domain(d3.extent(data, function(d) { return d.unique_views; }));
             r.domain(d3.extent(data, function(d) { return d.tag_good_arr; }));
             xHours.domain(hours_avg.map(function(d) { return d.hour; }));
-            yFrequency.domain(d3.extent(hours_avg, function(d) { return d.frequency; }));
+            yFrequency.domain([0, d3.max(hours_avg, function(d) { return d.frequency; })]);
 
             svg.selectAll(".bar")
                 .data(hours_avg)
