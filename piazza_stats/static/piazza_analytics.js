@@ -100,6 +100,7 @@
                 .attr("title", "highest post #:" + highest_post_number).appendTo($("#infobar"));
             
             d3.json('/auto-update', function(err, update_data) {
+                /*
                 var delta = +update_data.data.update_count;
                 
                 $("<a/>")
@@ -112,6 +113,7 @@
                     .attr("href", "")
                     .attr("title", "Click to update.")
                     .hide().appendTo($("<p/>").appendTo($("#infobar"))).fadeIn(100);
+                    */
             });
 
 
@@ -123,22 +125,26 @@
             
             
             var toggleLayer = function(evt) {
-                var name = $(evt.target).data("chartlayer").name;
                 $($(evt.target).data("chartlayer").selector).toggle();
-                if ($(this).text().indexOf("Hide") == 0)
-                    $(this).text("Show "+name);
-                else
-                    $(this).text("Hide "+name);
             };
             
-            _([{name: "posts", selector: "svg .dot"},
+            
+            ps.layers = [{name: "posts", selector: "svg .dot"},
                {name: "histogram", selector: "svg .bar.faded"},
                {name: "response times", selector: "svg .bar.responses"}
-            ]).map(function(d) {
-                $("<a/>").text("Hide "+d.name)
-                    .data("chartlayer", d)
-                    .click(toggleLayer)
-                    .appendTo($("<li/>").appendTo($("#control-buttons")));
+            ];
+            
+            _(ps.layers).each(function(d) {
+                $("#layerpanel")
+                    .append($("<li/>")
+                        .append($("<label/>")
+                            .text(d.name)
+                            .click(toggleLayer)
+                            .prepend($("<input/>")
+                                .data("chartlayer", d)
+                                .attr("type", "checkbox")
+                                .prop("checked", 1)
+                        )));
             });
             
             
@@ -336,43 +342,6 @@
     
     
     
-    var draw_first_responses = function(parentdiv) {
-        var margin = {top: 20, right: 20, bottom: 40, left: 40},
-            width = $("#mothership").width() - margin.left - margin.right,
-            height = 700 - margin.top - margin.bottom;
-
-        var x = d3.scale.linear()
-            .range([0, width]);
-
-        var y = d3.scale.linear()
-            .range([height, 0]);
-        
-        var r = d3.scale.linear()
-            .range([3.5, 10]);
-            
-        var xHours = d3.scale.ordinal()
-            .rangeRoundBands([0, width], .1);
-
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom")
-            .tickFormat(function (d) {
-                var h = d.toString();
-                while (h.length < 4) h = "0" + h;
-                return h.substr(0, 2) + ":" + h.substr(2,3);
-             });
-
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
-        
-        d3.json("/time-until-responses", function(error, json) {
-            
-        });
-    };
-    
-    
-    
     
     var draw_calendar = function(parentdiv) {
         var monthPath = function(t0) {
@@ -485,6 +454,20 @@
                 .text(function(d) { return d + ": " + json[d]; });
         });
     };
+    
+    
+    var render_posts_view = function(parentdiv) {
+        d3.json("/posts", function(err, data) {
+            data = data.data;
+            data.forEach(function(d) {
+                $("<li/>").text(d.result.nr)
+                    .appendTo($(parentdiv));
+            });
+        });
+    };
+    
+//    render_posts_view('#posts_view');
+    
     
     draw_bubbles('#bubbles_chart');
     draw_calendar('#calendar_chart');

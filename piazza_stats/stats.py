@@ -21,7 +21,10 @@ from piazza_stats import app
 class Stats(object):
     def __init__(self, classid, postsdir):
         self.network_id = classid
-        self.piazza = self.get_piazza()
+        try:
+            self.piazza = self.get_piazza()
+        except:
+            pass
         self.posts = Stats.get_db()
         self.postsdir = postsdir
     
@@ -97,8 +100,11 @@ class Stats(object):
         if piazza_newest_post <= db_newest_post:
             return
         
-        gatherer(self.piazza, db_newest_post + 1, piazza_newest_post, self.postsdir)
-        update_db(self.postsdir, db_newest_post + 1, piazza_newest_post)
+        gathered_result = gatherer(self.piazza, db_newest_post + 1, piazza_newest_post, self.postsdir)
+        if gathered_result:
+            update_db(self.postsdir, db_newest_post + 1, piazza_newest_post)
+        else:
+            return -len(gathered_result)
         
         return piazza_newest_post - db_newest_post
     
@@ -158,7 +164,11 @@ def update_db(postsdir, start_post=None, end_post=None):
 
 
 def gatherer(piazza, start_post, end_post, outdir=None):
-    json_posts = []
+    """
+    :returns: (if outdir was provided) list of post numbers that had problems and were not saved;
+              (else) list of post objects that were successfully retrieved 
+    """
+    result = []
     delta = end_post - start_post
     
     for i in xrange(start_post, end_post+1):
@@ -169,14 +179,16 @@ def gatherer(piazza, start_post, end_post, outdir=None):
                 with open(os.path.join(outdir, '%d.json' % i), 'w') as outf:
                     json.dump(post, outf)
             else:
-                json_posts.append(post)
+                result.append(post)
+        elif outdir:
+            result.append(i)
         
         if delta > 25 and i % delta == 24:
             time.sleep(3)
         
         time.sleep(1)
     
-    return json_posts
+    return result
 
 
 

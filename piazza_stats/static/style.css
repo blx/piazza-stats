@@ -71,14 +71,32 @@ header a:hover {
     display: inline-block;
 }
 #control-buttons a {
-    background-color: red;
+    background-color: blue;
     border-radius: 4px;
     padding: .5em .8em;
 }
 #control-buttons a:hover {
     cursor:pointer;
-    color: black;
+    background-color: darkblue;
 }
+
+#layerpanel li {
+    display: inline-block;
+    margin-right: 1em;
+}
+
+
+#posts_view {
+    list-style-type: none;
+}
+#posts_view li {
+    display: inline-block;
+    background-color: #ccc;
+    width: 10%;
+    padding: 1em;
+    margin: 0.5em;
+}
+
 
 
 

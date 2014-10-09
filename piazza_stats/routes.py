@@ -52,3 +52,7 @@ def run_auto_update():
 @app.route('/time-until-responses')
 def get_time_until_first_resp():
     return js(stats.get_time_until_first_responses())
+
+@app.route('/posts')
+def get_all_posts():
+    return js([p for p in stats.posts.find({}, {"result.nr":1, "_id":0}).sort("result.nr", -1)])
