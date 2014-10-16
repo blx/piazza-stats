@@ -15,7 +15,7 @@ def js(obj):
 
 @app.route('/')
 def dashboard_view():
-    return render_template('dashboard.html')
+    return render_template('dashboard.jade')
 
 @app.route('/get_users', methods=['POST'])
 def get_users_json():
