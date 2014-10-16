@@ -4,8 +4,8 @@ from datetime import datetime
 import operator
 
 from pytz import timezone
-tz_utc = timezone('UTC')
-tz_vancouver = timezone('America/Vancouver')
+TZ_UTC = timezone('UTC')
+TZ_VANCOUVER = timezone('America/Vancouver')
 
 from piazza_stats import app
 from piazza_stats import interface
@@ -14,10 +14,7 @@ from piazza_stats import interface
 class Stats(object):
     def __init__(self, classid, postsdir):
         self.network_id = classid
-#        try:
         self.piazza = interface.get_piazza(network_id=self.network_id)
-#        except:
-#            pass
         self.posts = interface.get_db()
         self.postsdir = postsdir
 
@@ -125,7 +122,7 @@ class Stats(object):
 
 
 def parse_datetime(s):
-    return datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=tz_utc).astimezone(tz_vancouver)
+    return datetime.strptime(s, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=TZ_UTC).astimezone(TZ_VANCOUVER)
 
 def parse_epoch(s):
     return time.mktime(parse_datetime(s).timetuple())
