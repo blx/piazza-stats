@@ -11,9 +11,9 @@ from piazza_stats import app
 
 
 def get_piazza(network_id=None, email=None, password=None):
-    p = PiazzaAPI(network_id=network_id if network_id else app.config["PIAZZA_CLASS_ID"])
-    p.user_auth(email=email if email else app.config["PIAZZA_LOGIN_EMAIL"],
-                password=password if password else app.config["PIAZZA_LOGIN_PASS"])
+    p = PiazzaAPI(network_id=network_id or app.config["PIAZZA_CLASS_ID"])
+    p.user_auth(email=email or app.config["PIAZZA_LOGIN_EMAIL"],
+                password=password or app.config["PIAZZA_LOGIN_PASS"])
     return p
 
 

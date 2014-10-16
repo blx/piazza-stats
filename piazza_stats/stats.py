@@ -12,11 +12,11 @@ from piazza_stats import interface
 
 
 class Stats(object):
-    def __init__(self, classid, postsdir):
+    def __init__(self, classid=None, postsdir=None):
         self.network_id = classid
-        self.piazza = interface.get_piazza(network_id=self.network_id)
+        self.piazza = interface.get_piazza(network_id=self.network_id or app.config["PIAZZA_CLASS_ID"] )
         self.posts = interface.get_db()
-        self.postsdir = postsdir
+        self.postsdir = postsdir or app.config["POSTS_DIR"]
 
 
     def get_users(self, user_ids):
