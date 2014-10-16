@@ -84,6 +84,10 @@ header a:hover {
     display: inline-block;
     margin-right: 1em;
 }
+#layerpanel li:hover,
+#layerpanel label:hover {
+    cursor: pointer;
+}
 
 
 #posts_view {

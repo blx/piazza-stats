@@ -1,44 +1,26 @@
 import csv
 import time
-import os
-import json
-import glob
 from datetime import datetime
-import time
 import operator
-from itertools import groupby
 
 from pytz import timezone
 tz_utc = timezone('UTC')
 tz_vancouver = timezone('America/Vancouver')
 
-from pymongo import MongoClient
-from piazza_api import PiazzaAPI
-
 from piazza_stats import app
+from piazza_stats import interface
 
 
 class Stats(object):
     def __init__(self, classid, postsdir):
         self.network_id = classid
-        try:
-            self.piazza = self.get_piazza()
-        except:
-            pass
-        self.posts = Stats.get_db()
+#        try:
+        self.piazza = interface.get_piazza(network_id=self.network_id)
+#        except:
+#            pass
+        self.posts = interface.get_db()
         self.postsdir = postsdir
-    
-    def get_piazza(self):
-        p = PiazzaAPI(network_id=self.network_id)
-        p.user_auth(email=app.config["PIAZZA_LOGIN_EMAIL"],
-                    password=app.config["PIAZZA_LOGIN_PASS"])
-        return p
-    
-    @staticmethod
-    def get_db():
-        mongo = MongoClient()
-        db = mongo.piazza_db
-        return db.posts
+
 
     def get_users(self, user_ids):
         return self.piazza.get_users(user_ids)
@@ -85,9 +67,6 @@ class Stats(object):
 
 
     def analyze_dir(self, load_db=False):
-        if load_db:
-            update_db(self.postsdir)
-    
         return group_datetimes_by_hours([i["result"]["created"] 
                                          for i in self.posts.find().sort("result.created")
                                          if i["result"].get("created")])
@@ -100,11 +79,10 @@ class Stats(object):
         if piazza_newest_post <= db_newest_post:
             return
         
-        gathered_result = gatherer(self.piazza, db_newest_post + 1, piazza_newest_post, self.postsdir)
-        if gathered_result:
-            update_db(self.postsdir, db_newest_post + 1, piazza_newest_post)
-        else:
-            return -len(gathered_result)
+        gathered_result = interface.gatherer(self.piazza,
+                                             db_newest_post + 1,
+                                             piazza_newest_post,
+                                             self.postsdir)
         
         return piazza_newest_post - db_newest_post
     
@@ -135,7 +113,7 @@ class Stats(object):
 #        } for p in posts]
         
         for p in posts:
-            p["created_hour"] = datetime.fromtimestamp(p["created"], tz=tz_vancouver).time().hour
+            p["created_hour"] = time.localtime(p["created"]).tm_hour
             p["timedelta_inst"] = -1 if not p["first_inst_resp"] else p["first_inst_resp"][0] - p["created"]
             p["timedelta_stu"] = -1 if not p["first_stu_resp"] else p["first_stu_resp"][0] - p["created"]
             del p["first_inst_resp"]
@@ -143,52 +121,6 @@ class Stats(object):
         
         return posts
 
-
-
-
-def update_db(postsdir, start_post=None, end_post=None):
-    posts = Stats.get_db()
-    
-    for file in glob.iglob(os.path.join(postsdir, '*.json')):
-        num = int(os.path.split(file)[1].split('.')[0])
-
-        if start_post and start_post > num:
-            continue
-        elif end_post and end_post < num:
-            break
-    
-        with open(file, 'r') as infile:
-            posts.insert(json.load(infile))
-            print 'Added post %s' % file
-
-
-
-def gatherer(piazza, start_post, end_post, outdir=None):
-    """
-    :returns: (if outdir was provided) list of post numbers that had problems and were not saved;
-              (else) list of post objects that were successfully retrieved 
-    """
-    result = []
-    delta = end_post - start_post
-    
-    for i in xrange(start_post, end_post+1):
-        print "Fetching post #{}".format(i)
-        post = piazza.get_post(cid=i)
-        if post and not post.get('error'):
-            if outdir:
-                with open(os.path.join(outdir, '%d.json' % i), 'w') as outf:
-                    json.dump(post, outf)
-            else:
-                result.append(post)
-        elif outdir:
-            result.append(i)
-        
-        if delta > 25 and i % delta == 24:
-            time.sleep(3)
-        
-        time.sleep(1)
-    
-    return result
 
 
 
