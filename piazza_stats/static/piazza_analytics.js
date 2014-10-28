@@ -37,7 +37,8 @@
             .range([3.5, 10]);
             
         var xHours = d3.scale.ordinal()
-            .rangeRoundBands([0, width], 0/*.1*/);
+            .rangeRoundBands([0, width], 0/*.1*/)
+            .domain(_.range(24));
         
         var yFrequency = d3.scale.linear()
             .range([height, 0]);
@@ -48,7 +49,7 @@
         var xAxis = d3.svg.axis()
             .scale(x)
             .orient("bottom")
-            .tickFormat(function (d) {
+            .tickFormat(function(d) {
                 var h = d.toString();
                 while (h.length < 4) h = "0" + h;
                 return h.substr(0, 2) + ":" + h.substr(2,3);
@@ -61,8 +62,13 @@
         var yAxisFrequency = d3.svg.axis()
             .scale(yFrequency)
             .orient("right");
-
-        d3.json('/posts-weights/json', function(error, data) {
+            
+        var hours_avg = _.reduce(_.range(24), function(obj,hour) {
+            obj[hour] = 0;
+            return obj;
+        }, {});
+        
+        var data_handler = function(data, svg, tip) {
             data = data.data;
             var highest_post_number = -1;
             
@@ -78,10 +84,6 @@
                 highest_post_number = Math.max(highest_post_number, d.nr);
             });
             
-            var hours_avg = {};
-            for (var h=0; h<24; h++) {
-                hours_avg[h] = 0;
-            }
             hours_avg = data.reduce(function(sofar, d) {
                 sofar[+d.time.substr(0,2)]++;
                 return sofar;
@@ -94,101 +96,15 @@
             });
             
             
-            $("<h2/>").text("Activity by Time of Day").appendTo($(parentdiv));
             
             $("<h3/>").text(data.length+" posts")
                 .attr("title", "highest post #:" + highest_post_number).appendTo($("#infobar"));
-            
-            d3.json('/auto-update', function(err, update_data) {
-                /*
-                var delta = +update_data.data.update_count;
-                
-                $("<a/>")
-                    .text(delta
-                        ? 'Behind Piazza by ' + delta + ' post' + (delta > 1 ? 's' : '') + '.'
-                        : 'Up to date with Piazza.')
-                    .on("click", function() {
-                        $.get('/auto-update');
-                    })
-                    .attr("href", "")
-                    .attr("title", "Click to update.")
-                    .hide().appendTo($("<p/>").appendTo($("#infobar"))).fadeIn(100);
-                    */
-            });
 
 
-            var svg = d3.select(parentdiv).append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-              .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             
-            
-            var toggleLayer = function(evt) {
-                $($(evt.target).data("chartlayer").selector).toggle();
-            };
-            
-            
-            ps.layers = [{name: "posts", selector: "svg .dot"},
-               {name: "histogram", selector: "svg .bar.faded"},
-               {name: "response times", selector: "svg .bar.responses"}
-            ];
-            
-            _(ps.layers).each(function(d) {
-                $("#layerpanel")
-                    .append($("<li/>")
-                        .append($("<label/>")
-                            .text(d.name)
-                            .click(toggleLayer)
-                            .prepend($("<input/>")
-                                .data("chartlayer", d)
-                                .attr("type", "checkbox")
-                                .prop("checked", 1)
-                        )));
-            });
-            
-            
-            var tip = d3.tip()
-                .attr("class", "d3-tip")
-                .html(function(d) {
-                    if (d.nr) {
-                        var s = "<h3>" + d.subject + "</h3>"
-                        s += "<p>Post #" + d.nr + " – " + d.created + "</p>";
-                        s += d.content_preview;
-                        return s;
-                    } else if (d.frequency) {
-                        return "<h4>" + d.frequency + " posts at " + (d.hour < 10 ? '0' : '') + d.hour + "00h</h4>";
-                    } else if (d.avg_delta_inst) {
-                        return "<h4>" + (d.avg_delta_inst / 60 / 60).toFixed(1) + "h avg instructor response</h4>";
-                    } else if (d.avg_delta_stu) {
-                        return "<h4>" + (d.avg_delta_stu / 60 / 60).toFixed(1) + "h avg student response</h4>";
-                    } else
-                        return "";
-                });
-                
-            tip.direction(function(d) {
-                // try to keep tooltip inside boundaries
-                
-                if (!this.cy) return 'n';
-                
-                var dir = this.cy.baseVal.value - 300 < 0
-                        ? 's'
-                        : 'n';
-                
-                if (this.cx.baseVal.value - 400 < 0)
-                    dir += 'e';
-                else if (this.cx.baseVal.value + 400 > $(parentdiv).width())
-                    dir += 'w';
-                
-                return dir;
-                
-            });
-        
-            svg.call(tip);
             
             yViews.domain(d3.extent(data, function(d) { return d.unique_views; }));
             r.domain(d3.extent(data, function(d) { return d.tag_good_arr; }));
-            xHours.domain(hours_avg.map(function(d) { return d.hour; }));
             yFrequency.domain([0, d3.max(hours_avg, function(d) { return d.frequency; })]);
 
             svg.selectAll(".bar.faded")
@@ -201,17 +117,6 @@
                 .attr("height", function(d) { return height - yFrequency(d.frequency); })
                 .on("mouseover", tip.show)
                 .on("mouseout", tip.hide);
-
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis)
-                .append("text")
-                .attr("class", "label")
-                .attr("x", width)
-                .attr("y", 30)
-                .style("text-anchor", "end")
-                .text("Time of Day Created (HH:MM)");
 
             svg.append("g")
                 .attr("class", "y axis")
@@ -234,16 +139,7 @@
                 .attr("y", 6)
                 .attr("dy", ".71em")
                 .text("Number of Posts (bars)");
-            
-            svg.append("g")
-                .attr("class", "y axis")
-                .attr("transform", "translate("+(width-20)+",0)")
-                .append("text")
-                    .attr("class", "label")
-                    .attr("transform", "rotate(90)")
-                    .attr("y", 6)
-                    .attr("dy", ".71em")
-                    .text("How long until first answer?");
+        
 
             svg.selectAll(".dot")
                 .data(data)
@@ -337,7 +233,104 @@
                     .on("mouseover", tip.show)
                     .on("mouseout", tip.hide);
             });
+        };
+
+        d3.json('/posts-weights/json', function(err, data) {
+            $("<h2/>").text("Activity by Time of Day").appendTo($(parentdiv));
+            
+            var svg = d3.select(parentdiv).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            
+            
+            var toggleLayer = function(evt) {
+                $($(evt.target).data("chartlayer").selector).toggle();
+            };
+            
+            
+            ps.layers = [{name: "posts", selector: "svg .dot"},
+               {name: "histogram", selector: "svg .bar.faded"},
+               {name: "response times", selector: "svg .bar.responses"}
+            ];
+            
+            _(ps.layers).each(function(d) {
+                $("#layerpanel")
+                    .append($("<li/>")
+                        .append($("<label/>")
+                            .text(d.name)
+                            .click(toggleLayer)
+                            .prepend($("<input/>")
+                                .data("chartlayer", d)
+                                .attr("type", "checkbox")
+                                .prop("checked", 1)
+                        )));
+            });
+            
+            
+            var tip = d3.tip()
+                .attr("class", "d3-tip")
+                .html(function(d) {
+                    if (d.nr) {
+                        var s = "<h3>" + d.subject + "</h3>"
+                        s += "<p>Post #" + d.nr + " – " + d.created + "</p>";
+                        s += d.content_preview;
+                        return s;
+                    } else if (d.frequency) {
+                        return "<h4>" + d.frequency + " posts at " + (d.hour < 10 ? '0' : '') + d.hour + "00h</h4>";
+                    } else if (d.avg_delta_inst) {
+                        return "<h4>" + (d.avg_delta_inst / 60 / 60).toFixed(1) + "h avg instructor response</h4>";
+                    } else if (d.avg_delta_stu) {
+                        return "<h4>" + (d.avg_delta_stu / 60 / 60).toFixed(1) + "h avg student response</h4>";
+                    } else
+                        return "";
+                });
+                
+            tip.direction(function(d) {
+                // try to keep tooltip inside boundaries
+                
+                if (!this.cy) return 'n';
+                
+                var dir = this.cy.baseVal.value - 300 < 0
+                        ? 's'
+                        : 'n';
+                
+                if (this.cx.baseVal.value - 400 < 0)
+                    dir += 'e';
+                else if (this.cx.baseVal.value + 400 > $(parentdiv).width())
+                    dir += 'w';
+                
+                return dir;
+                
+            });
+            svg.call(tip);
+            
+            svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis)
+                .append("text")
+                .attr("class", "label")
+                .attr("x", width)
+                .attr("y", 30)
+                .style("text-anchor", "end")
+                .text("Time of Day Created (HH:MM)");
+                
+            svg.append("g")
+                .attr("class", "y axis")
+                .attr("transform", "translate("+(width-20)+",0)")
+                .append("text")
+                    .attr("class", "label")
+                    .attr("transform", "rotate(90)")
+                    .attr("y", 6)
+                    .attr("dy", ".71em")
+                    .text("How long until first answer?");
+            
+            
+            data_handler(data, svg, tip);
         });
+
     };
     
     
