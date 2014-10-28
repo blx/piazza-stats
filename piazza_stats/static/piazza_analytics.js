@@ -3,7 +3,7 @@
     
     var PIAZZA_POST_BASE_URI = 'https://piazza.com/class/hx2lqx3ohi06j?cid=';
     
-    
+    /*
     ps.get_user = function(userid) {
         var username = '';
         $.ajax({
@@ -18,7 +18,7 @@
             async: false
         });
         return username;
-    };
+    };*/
     
     
     var draw_bubbles = function(parentdiv) {
@@ -30,7 +30,7 @@
             .range([0, width])
             .domain([0, 2399]); // 24-hour time scaled to base-100 instead of base-60
 
-        var y = d3.scale.linear()
+        var yViews = d3.scale.linear()
             .range([height, 0]);
         
         var r = d3.scale.linear()
@@ -54,8 +54,8 @@
                 return h.substr(0, 2) + ":" + h.substr(2,3);
              });
 
-        var yAxis = d3.svg.axis()
-            .scale(y)
+        var yAxisViews = d3.svg.axis()
+            .scale(yViews)
             .orient("left");
 
         var yAxisFrequency = d3.svg.axis()
@@ -83,7 +83,7 @@
                 hours_avg[h] = 0;
             }
             hours_avg = data.reduce(function(sofar, d) {
-                sofar[+d.time.substr(0,2)] += 1;
+                sofar[+d.time.substr(0,2)]++;
                 return sofar;
             }, hours_avg);
             hours_avg = d3.keys(hours_avg).map(function(h) {
@@ -186,7 +186,7 @@
         
             svg.call(tip);
             
-            y.domain(d3.extent(data, function(d) { return d.unique_views; }));
+            yViews.domain(d3.extent(data, function(d) { return d.unique_views; }));
             r.domain(d3.extent(data, function(d) { return d.tag_good_arr; }));
             xHours.domain(hours_avg.map(function(d) { return d.hour; }));
             yFrequency.domain([0, d3.max(hours_avg, function(d) { return d.frequency; })]);
@@ -215,7 +215,7 @@
 
             svg.append("g")
                 .attr("class", "y axis")
-                .call(yAxis)
+                .call(yAxisViews)
                 .append("text")
                 .attr("class", "label")
                 .attr("transform", "rotate(-90)")
@@ -250,7 +250,7 @@
                 .enter().append("circle")
                 .attr("r", function(d) { return r(d.tag_good_arr); })
                 .attr("cx", function(d) { return x(d.time); })
-                .attr("cy", function(d) { return y(d.unique_views); })
+                .attr("cy", function(d) { return yViews(d.unique_views); })
                 .on("click", function(d) { window.open(PIAZZA_POST_BASE_URI + d.nr); })
                 .on("mouseover", tip.show)
                 .on("mouseout", tip.hide)
@@ -368,18 +368,6 @@
         d3.json("/calendar/json", function(error, json) {
             json = json.data;
             
-            /*
-            var years = _(json).chain()
-                .map(function(val, d) {
-                    return +d.substring(0,4); })   // get year part
-                .uniq().value().sort();
-            
-            
-            var year_months = _(years).reduce(function(memo, y) {
-                memo[y] = [];
-                return memo;
-            }, {});*/
-            
             var year_months = _(json).chain()
                 .keys()
                 .reduce(function(memo, d) {
@@ -393,12 +381,18 @@
                 }, {})
                 .value();
             
-            var years = _(_(year_months).keys()).map(function(y){ return +y; });
+            var years = _(_.keys(year_months)).map(function(y){ return +y; });
             
             var months = function(year) {
                 return d3.extent(d3.values(year_months[year]));
             }
-            
+            /*
+            var week_min_x = (d3.min(_.flatten(_.map(year_months, function(months, y) {
+                return _.map(months, function(m) {
+                    return week(new Date(y, m));
+                });
+            }))) - 1) * cellSize;
+            */
             
                 
             var svg = d3.select(parentdiv).selectAll("svg")
