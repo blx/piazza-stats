@@ -54,7 +54,7 @@ def gatherer(piazza, start_post, end_post, outdir=None):
     
     for i in xrange(start_post, end_post+1):
         print "Fetching post #{}".format(i)
-        post = piazza.get_post(cid=i)
+        post = piazza.get(cid=i)
         if post and not post.get('error'):
             if outdir:
                 db.insert(post)
