@@ -14,9 +14,10 @@ by Ben Cook <b@bencook.ca>
 
 3. Setup Piazza login configuration:
 
-    `$ echo "PIAZZA_LOGIN_EMAIL=(email)`
-    
-    `> PIAZZA_LOGIN_PASS=(pass)" > piazza_stats/login_config.py`
+    ```
+    $ echo "PIAZZA_LOGIN_EMAIL=(email)
+    > PIAZZA_LOGIN_PASS=(pass)" > piazza_stats/login_config.py
+    ```
 
 4. Activate virtualenv:
     
@@ -30,40 +31,17 @@ by Ben Cook <b@bencook.ca>
 
     `(piazza_env)$ pip install pymongo flask pytz pyjade`
 
-```
-(piazza_env)$ pip install requests
-(piazza_env)$ cd piazza_env/lib/python2.7/site-packages
-(piazza_env)$ git clone git@github.com:hfaran/piazza-api.git piazza_api
-(piazza_env)$ ln -s piazza_api/piazza_api.py piazza_api/__init__.py
-```
-(until we get the packaging correct, at which point this will be pip install piazza_api)
+    ```
+    (piazza_env)$ pip install requests
+    (piazza_env)$ cd piazza_env/lib/python2.7/site-packages
+    (piazza_env)$ git clone git@github.com:hfaran/piazza-api.git piazza_api
+    (piazza_env)$ ln -s piazza_api/piazza_api.py piazza_api/__init__.py
+    ```
+    
+    (until we get the packaging correct, at which point this will be pip install piazza_api)
+    
+    (check out [piazza_api by hfaran on github](https://github.com/hfaran/piazza-api) for more info)
 
-7. Start the app:
+7. Start the app in debug mode:
     
     `(piazza_env)$ python runserver.py`
-
-
-### Credits:
-
-Includes code based on [piazza_api by hfaran on github](https://github.com/hfaran/piazza-api), licensed as follows:
-
->The MIT License (MIT)
-
->Copyright (c) 2013 Hamza Faran
-
->Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
->The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
->THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
