@@ -28,7 +28,15 @@ by Ben Cook <b@bencook.ca>
 
 6. Back in the virtualenv, install packages:
 
-    `(piazza_env)$ pip install requests pymongo flask pytz`
+    `(piazza_env)$ pip install pymongo flask pytz pyjade`
+
+```
+(piazza_env)$ pip install requests
+(piazza_env)$ cd piazza_env/lib/python2.7/site-packages
+(piazza_env)$ git clone git@github.com:hfaran/piazza-api.git piazza_api
+(piazza_env)$ ln -s piazza_api/piazza_api.py piazza_api/__init__.py
+```
+(until we get the packaging correct, at which point this will be pip install piazza_api)
 
 7. Start the app:
     
