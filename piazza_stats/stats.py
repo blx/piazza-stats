@@ -98,16 +98,6 @@ class Stats(object):
                                for c in p["result"]["change_log"]
                                if c["type"] == "s_answer"][:1]
         } for p in posts]
-       
-#            "timedelta_inst": reduce(operator.__sub__,
-#                                    [datetime2epoch(parse_datetime(c["when"]))
-#                                     for c in p["result"]["change_log"]
-#                                     if c["type"] in ["create","i_answer"]][:2][::-1]),
-#            "timedelta_stu": reduce(operator.__sub__,
-#                                    [datetime2epoch(parse_datetime(c["when"]))
-#                                     for c in p["result"]["change_log"]
-#                                     if c["type"] in ["create", "s_answer"]][:2][::-1])
-#        } for p in posts]
         
         for p in posts:
             p["created_hour"] = time.localtime(p["created"]).tm_hour
