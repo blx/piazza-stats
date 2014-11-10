@@ -149,11 +149,12 @@ def time_analyze(json_posts):
 
 
 
-def main():
-    s = Stats(app.config["PIAZZA_CLASS_ID"])
+def process_csv(csvstr=""):
+    if not csvstr:
+        csvstr = Stats().piazza.get_statistics_csv()
 
     data = []
-    for row in csv.DictReader(s.piazza.get_statistics_csv().split("\n")):
+    for row in csv.DictReader(csvstr.split("\n")):
         for field in "days online,views,contributions,questions,notes,answers".split(","):
             row[field] = int(row[field])
         data.append(row)
@@ -162,10 +163,10 @@ def main():
     for row in sorted(data, key=operator.itemgetter('contributions'), reverse=True):
         if row["contributions"] == 0:
             break
-        print "{r[contributions]:3d} -- {r[name]} <{r[email]}>{inst}".format(
+        print "{r[contributions]:4d} -- {r[name]} <{r[email]}>{inst}".format(
             r=row,
             inst=" [INSTRUCTOR]" if row["role"] == "Instructor" else "")
 
 
 if __name__ == "__main__":
-    main()
+    process_csv()
