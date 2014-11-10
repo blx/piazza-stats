@@ -12,9 +12,9 @@ from piazza_stats import data_interface
 
 
 class Stats(object):
-    def __init__(self, classid=None, postsdir=None):
-        self.network_id = classid
-        self.piazza = data_interface.get_piazza(network_id=self.network_id or app.config["PIAZZA_CLASS_ID"] )
+    def __init__(self, nid=None, postsdir=None):
+        self.network_id = nid or app.config["PIAZZA_CLASS_ID"]
+        self.piazza = data_interface.get_piazza(network_id=self.network_id)
         self.posts = data_interface.get_db()
         self.postsdir = postsdir or app.config["POSTS_DIR"]
 

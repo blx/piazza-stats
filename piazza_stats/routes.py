@@ -5,8 +5,7 @@ from piazza_stats.stats import Stats
 
 # Cache the stats object between requests to preserve
 # the PiazzaAPI and Mongo connections.
-stats = Stats("hx2lqx3ohi06j",
-              app.config["POSTS_DIR"])
+stats = Stats()
 
 
 def js(obj):
