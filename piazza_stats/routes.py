@@ -28,8 +28,9 @@ def get_user_posts(uid):
 
 @app.route('/times/json')
 def get_times_json():
-    return js([{"hour":k, "frequency":v} for k, v in stats.analyze_dir().items()])
-    
+    return js([{"hour":k, "frequency":v}
+               for k, v in stats.analyze_dir().items()])
+
 @app.route('/posts-weights/json')
 def get_posts_weights_json():
     return js(stats.analyze_time_weights())
@@ -52,4 +53,6 @@ def get_time_until_first_resp():
 
 @app.route('/posts')
 def get_all_posts():
-    return js([p for p in stats.posts.find({}, {"result.nr":1, "_id":0}).sort("result.nr", -1)])
+    return js(list(stats.posts.find({},
+                                    {"result.nr":1, "_id":0}
+                                   ).sort("result.nr", -1)))
