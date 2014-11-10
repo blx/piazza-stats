@@ -8,14 +8,14 @@ TZ_UTC = timezone('UTC')
 TZ_VANCOUVER = timezone('America/Vancouver')
 
 from piazza_stats import app
-from piazza_stats import interface
+from piazza_stats import data_interface
 
 
 class Stats(object):
     def __init__(self, classid=None, postsdir=None):
         self.network_id = classid
-        self.piazza = interface.get_piazza(network_id=self.network_id or app.config["PIAZZA_CLASS_ID"] )
-        self.posts = interface.get_db()
+        self.piazza = data_interface.get_piazza(network_id=self.network_id or app.config["PIAZZA_CLASS_ID"] )
+        self.posts = data_interface.get_db()
         self.postsdir = postsdir or app.config["POSTS_DIR"]
 
 
