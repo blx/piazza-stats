@@ -29,19 +29,11 @@ by Ben Cook <b@bencook.ca>
 
 6. Back in the virtualenv, install packages:
 
-    `(piazza_env)$ pip install pymongo flask pytz pyjade`
-
-    ```
-    (piazza_env)$ pip install requests
-    (piazza_env)$ cd piazza_env/lib/python2.7/site-packages
-    (piazza_env)$ git clone git@github.com:hfaran/piazza-api.git piazza_api
-    (piazza_env)$ ln -s piazza_api/piazza_api.py piazza_api/__init__.py
-    ```
-    
-    (until we get the packaging correct, at which point this will be pip install piazza_api)
-    
-    (check out [piazza_api by hfaran on github](https://github.com/hfaran/piazza-api) for more info)
+    `(piazza_env)$ pip install -r requirements.txt`
 
 7. Start the app in debug mode:
     
     `(piazza_env)$ python runserver.py`
+
+
+*Post-fetching components powered by [piazza_api](https://github.com/hfaran/piazza-api)*
