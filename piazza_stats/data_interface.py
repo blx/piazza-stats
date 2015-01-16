@@ -67,7 +67,7 @@ def gatherer(piazza, start_post, end_post, outdir=None):
         elif outdir:
             result.append(i)
         
-        if delta > 25 and i % delta == 24:
+        if delta > 25 and not i % 25:
             sleep(3)
         
         sleep(1)
