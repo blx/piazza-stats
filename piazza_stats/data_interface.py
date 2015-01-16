@@ -3,7 +3,7 @@ import json
 import glob
 from time import sleep
 
-from piazza_api import PiazzaAPI
+from piazza_api.rpc import PiazzaRPC as PiazzaAPI
 from pymongo import MongoClient
 from bson import json_util
 
@@ -12,8 +12,8 @@ from piazza_stats import app
 
 def get_piazza(network_id=None, email=None, password=None):
     p = PiazzaAPI(network_id=network_id or app.config["PIAZZA_CLASS_ID"])
-    p.user_auth(email=email or app.config["PIAZZA_LOGIN_EMAIL"],
-                password=password or app.config["PIAZZA_LOGIN_PASS"])
+    p.user_login(email=email or app.config["PIAZZA_LOGIN_EMAIL"],
+                 password=password or app.config["PIAZZA_LOGIN_PASS"])
     return p
 
 
