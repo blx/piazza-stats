@@ -1,4 +1,4 @@
-!!! 5
+doctype html
 html(lang="en")
     head
         title Piazza Analytics
@@ -11,7 +11,7 @@ html(lang="en")
     
         header
             h1 Piazza Analytics 
-                span CPSC 210
+                span #{course.name}, #{course.term}
             p: a(href="http://bencook.ca") by ben
     
         #mothership
@@ -21,6 +21,8 @@ html(lang="en")
             ul#layerpanel
             #bubbles_chart.chart
             #calendar_chart.chart
+            
+            ul#users_chart.chart
         
         //-
             div.chart

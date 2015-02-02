@@ -18,8 +18,10 @@ def get_piazza(network_id=None, email=None, password=None):
     return p
 
 
-def get_db():
-    return MongoClient().piazza_db.posts
+def get_db(network_id=None):
+    if not network_id:
+        network_id = app.config["PIAZZA_CLASS_ID"]
+    return MongoClient().piazza_db['posts_'+network_id]
 
 
 

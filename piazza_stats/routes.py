@@ -3,9 +3,12 @@ from flask import render_template, jsonify, request, abort
 from piazza_stats import app
 from piazza_stats.stats import Stats
 
+courseID = app.config["PIAZZA_CLASS"] = app.config["PIAZZA_CLASSES"].keys()[0]
+course = app.config["PIAZZA_CLASSES"][courseID]
+
 # Cache the stats object between requests to preserve
 # the PiazzaAPI and Mongo connections.
-stats = Stats()
+stats = Stats(nid=courseID)
 
 
 def js(obj):
@@ -14,7 +17,7 @@ def js(obj):
 
 @app.route('/')
 def dashboard_view():
-    return render_template('dashboard.jade')
+    return render_template('dashboard.jade', course=course)
 
 @app.route('/get_users', methods=['POST'])
 def get_users_json():
@@ -38,10 +41,6 @@ def get_posts_weights_json():
 @app.route('/calendar/json')
 def get_calendar_json():
     return js(stats.get_calendar())
-
-#@app.route('/instructor_stats')
-#def get_instructor_stats():
-#    return js(stats.piazza.get_instructor_stats())
 
 @app.route('/auto-update')
 def run_auto_update():
