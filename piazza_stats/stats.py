@@ -25,13 +25,12 @@ class Stats(object):
     def get_posts_by_user(self, user_id):
         username = self.get_users([user_id])[0]
 
-        user_posts = self.posts.find({'result.change_log.0.uid': user_id})
-        return [dict(created_by=username, **p.get('result'))
+        user_posts = self.posts.find({'change_log.0.uid': user_id})
+        return [dict(created_by=username, **p)
                 for p in user_posts]
 
     def analyze_time_weights(self):
-        def extract_fields(post):
-            p = post['result']
+        def extract_fields(p):
             content = p['history'][0]['content']
             return {
                 'created': p['created'],
@@ -47,16 +46,16 @@ class Stats(object):
 
         data = [extract_fields(p)
                 for p in self.posts.find()
-                if p['result']['status'] != 'deleted']
+                if p['status'] != 'deleted']
 
         return data
 
     def get_calendar(self):
-        dates = [p['result']['created'].split('T')[0]
+        dates = [p['created'].split('T')[0]
                  for p in self.posts.find(
-                    {"result.status": {"$ne": "deleted"}},
-                    {"result.created": 1}
-                 ).sort("result.created")]
+                    {"status": {"$ne": "deleted"}},
+                    {"created": 1}
+                 ).sort("created")]
 
         days = {}
         for k in dates:
@@ -69,17 +68,17 @@ class Stats(object):
 
 
     def analyze_dir(self):
-        return group_datetimes_by_hours([p["result"]["created"]
+        return group_datetimes_by_hours([p["created"]
                                          for p in self.posts.find(
-                                            {"result.created": {"$exists": True}}
-                                         ).sort("result.created")])
+                                            {"created": {"$exists": True}}
+                                         ).sort("created")])
 
 
     def auto_update(self):
-        piazza_newest_post = int(self.piazza.get_instructor_stats()['total_posts'])
+        piazza_newest_post = int(self.piazza.get_stats()['total']['posts'])
         db_newest_post = int((self.posts.find()
-                                        .sort("result.change_log.0.when", -1)
-                                        .limit(1)[:][0]['result']['nr']))
+                                        .sort("change_log.0.when", -1)
+                                        .limit(1)[:][0]['nr']))
 
         if piazza_newest_post <= db_newest_post:
             return
@@ -93,18 +92,18 @@ class Stats(object):
 
 
     def get_time_until_first_responses(self):
-        posts = self.posts.find({"result.status": {"$ne": "deleted"}},
-                                {"result.change_log": 1, "result.nr" :1, "_id": 0}
-                               ).sort("result.nr")
+        posts = self.posts.find({"status": {"$ne": "deleted"}},
+                                {"change_log": 1, "nr" :1, "_id": 0}
+                               ).sort("nr")
 
         posts = [{
-            "nr": p["result"]["nr"],
-            "created": parse_epoch(p["result"]["change_log"][0]["when"]),
+            "nr": p["nr"],
+            "created": parse_epoch(p["change_log"][0]["when"]),
             "first_inst_resp": [parse_epoch(c["when"])
-                                for c in p["result"]["change_log"]
+                                for c in p["change_log"]
                                 if c["type"] == "i_answer"][:1],
             "first_stu_resp": [parse_epoch(c["when"])
-                               for c in p["result"]["change_log"]
+                               for c in p["change_log"]
                                if c["type"] == "s_answer"][:1]
         } for p in posts]
 
@@ -118,6 +117,9 @@ class Stats(object):
             del p["first_stu_resp"]
 
         return posts
+
+    def get_users(self):
+        pass
 
 
 

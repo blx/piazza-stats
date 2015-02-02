@@ -54,5 +54,5 @@ def get_time_until_first_resp():
 @app.route('/posts')
 def get_all_posts():
     return js(list(stats.posts.find({},
-                                    {"result.nr":1, "_id":0}
-                                   ).sort("result.nr", -1)))
+                                    {"nr":1, "_id":0}
+                                   ).sort("nr", -1)))

@@ -3,7 +3,8 @@ import json
 import glob
 from time import sleep
 
-from piazza_api.rpc import PiazzaRPC as PiazzaAPI
+from piazza_api.rpc import PiazzaRPC as PiazzaAPI  # pretend the past is still with us
+from piazza_api.exceptions import RequestError
 from pymongo import MongoClient
 from bson import json_util
 
@@ -45,7 +46,7 @@ def gatherer(piazza, start_post, end_post, outdir=None):
     either returns them as a list of objects or writes them as JSON to the provided
     outdir. If outdir is given, the posts are also pushed to the database.
     
-    :returns: (if outdir was provided) list of post numbers that had problems and were not saved;
+    :returns: (if outdir was provided) None
               (else) list of post objects that were successfully retrieved 
     """
     result = []
@@ -54,25 +55,31 @@ def gatherer(piazza, start_post, end_post, outdir=None):
     
     for i in xrange(start_post, end_post+1):
         print "Fetching post #{}".format(i)
-        post = piazza.get(cid=i)
-        if post and not post.get('error'):
-            if outdir:
-                db.insert(post)
-                print 'Added post %d to db' % i
-                
-                with open(os.path.join(outdir, '%d.json' % i), 'w') as outf:
-                    outf.write(json_util.dumps(post, outf))
-            else:
-                result.append(post)
-        elif outdir:
-            result.append(i)
+
+        try:
+            post = piazza.content_get(cid=i)
+        except RequestError, e:
+            if "Not permitted" in e:
+                print "  ERR: Piazza prevented fetching post %d" % i
+            sleep(1)
+            continue
+        
+        if outdir:
+            db.insert(post)
+            print '  Added post %d to db' % i
+            
+            with open(os.path.join(outdir, '%d.json' % i), 'w') as outf:
+                outf.write(json_util.dumps(post, outf))
+        else:
+            result.append(post)
         
         if delta > 25 and not i % 25:
             sleep(3)
         
         sleep(1)
     
-    return result
+    if not ourdir:
+        return result
 
 
 
