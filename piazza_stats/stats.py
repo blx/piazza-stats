@@ -59,10 +59,7 @@ class Stats(object):
 
         days = {}
         for k in dates:
-            if days.get(k) != None:
-                days[k] += 1
-            else:
-                days[k] = 1
+            days[k] = days.get(k, 0) + 1
 
         return days
 
